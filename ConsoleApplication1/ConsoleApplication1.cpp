@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < contours.size(); i++)
     {
         cv::Scalar color = cv::Scalar(255, 255, 255);
-        drawContours(contour_img, contours, (int)i, color, 5, 8, hierarchy, 0, cv::Point());
+        drawContours(contour_img, contours, (int)i, color, 18, 8);
     }
 
     imshow("contours", contour_img);
@@ -49,27 +49,34 @@ int main(int argc, char **argv)
 
     img = contour_img;
 
-    whole_image.convertTo(whole_image, CV_32FC3, 1.0 / 255.0);
-    cv::resize(whole_image, whole_image, img.size());
+    //whole_image.convertTo(whole_image, CV_32FC3, 1.0 / 255.0);
+    //cv::resize(whole_image, whole_image, img.size());
     img.convertTo(img, CV_32FC3, 1.0 / 255.0);
 
     Mat bg = Mat(img.size(), CV_32FC3);
     bg = Scalar(1.0, 1.0, 1.0);
 
     // Prepare mask
-    Mat mask;
-    Mat img_gray;
-    cv::cvtColor(img, img_gray, cv::COLOR_BGR2GRAY);
-    img_gray.convertTo(mask, CV_32FC1);
-    threshold(1.0 - mask, mask, 0.9, 1.0, cv::THRESH_BINARY_INV);
+    Mat mask = contour_img;
+    //Mat img_gray = img;
+    //cv::cvtColor(img, img_gray, cv::COLOR_BGR2GRAY);
+    //img_gray.convertTo(mask, CV_32FC1);
+    //threshold(1.0 - mask, mask, 0.9, 1.0, cv::THRESH_BINARY_INV);
+
+    //threshold(img_gray, mask, 100, 255, cv::THRESH_BINARY_INV);
+    
+    cv::dilate(mask, mask, Mat(), Point(-1, -1), 2, 1, 1);
 
     cv::GaussianBlur(mask, mask, Size(21, 21), 11.0);
     imshow("result", mask);
     cv::waitKey(0);
 
 
+    Mat img_masked;
+    whole_image.copyTo(img_masked, mask);
+
     // Reget the image fragment with smoothed mask
-    Mat res;
+    /*Mat res;
 
     vector<Mat> ch_img(3);
     vector<Mat> ch_bg(3);
@@ -79,9 +86,9 @@ int main(int argc, char **argv)
     ch_img[1] = ch_img[1].mul(mask) + ch_bg[1].mul(1.0 - mask);
     ch_img[2] = ch_img[2].mul(mask) + ch_bg[2].mul(1.0 - mask);
     cv::merge(ch_img, res);
-    cv::merge(ch_bg, bg);
+    cv::merge(ch_bg, bg);*/
 
-    imshow("result", res);
+    imshow("result", img_masked);
     cv::waitKey(0);
     cv::destroyAllWindows();
 }
